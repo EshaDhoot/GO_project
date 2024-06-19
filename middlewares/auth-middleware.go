@@ -63,7 +63,7 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
 	}
 
 	if exp, ok := claims["exp"].(float64); ok {
-		if time	.Unix(int64(exp), 0).Before(time.Now()) {
+		if time.Unix(int64(exp), 0).Before(time.Now()) {
 			return nil, fmt.Errorf("token has expired")
 		}
 	} else {
