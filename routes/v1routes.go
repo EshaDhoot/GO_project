@@ -20,6 +20,7 @@ func UserRouter(incomingRoutes *gin.Engine, mongoDB *mongo.Database) {
 		v1.POST("/users/signup", authController.SignUp)
 		v1.POST("/users/signin", authController.SignIn)
 		v1.POST("/users/verify-otp", authController.VerifyOtp)
+		v1.POST("/users/refresh-token", authController.RefreshToken)
 
 	}
 

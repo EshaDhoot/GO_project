@@ -126,7 +126,6 @@ func (s *UserController) SignIn(ctx *gin.Context) {
 
 }
 
-
 func (s *UserController) VerifyOtp(ctx *gin.Context) {
 	var otpPayload dtos.OtpRequest
 	err := ctx.ShouldBindJSON(&otpPayload)
@@ -162,7 +161,7 @@ func (s *UserController) VerifyOtp(ctx *gin.Context) {
 			return
 		}
 		existingUserbyEmail, err := s.UserService.FindUserByEmail(context.Background(), otpPayload.EmailId)
-		
+
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"error":   err,
@@ -170,13 +169,16 @@ func (s *UserController) VerifyOtp(ctx *gin.Context) {
 			})
 			return
 		}
-		token, err := createToken(existingUserbyEmail)
+		accessToken, refreshToken, err := createToken(existingUserbyEmail)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		ctx.SetCookie("token", token, 3600, "/", "localhost", false, true)
+		ctx.SetCookie("accessToken", accessToken, 3600, "/", "localhost", false, true)
+
+		ctx.SetCookie("refreshToken", refreshToken, 7*24*3600, "/", "localhost", false, true)
+
 		ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
 			"message": "successfully verified user",
 			"success": true,
@@ -192,23 +194,124 @@ func (s *UserController) VerifyOtp(ctx *gin.Context) {
 	// })
 }
 
-func createToken(user *models.User) (string, error) {
+func createToken(user *models.User) (string, string, error) {
 
 	godotenv.Load(".env")
 	SECRET := os.Getenv("JWT_SECRET")
 	SECRET_KEY := []byte(SECRET)
-	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	access_token_claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"firstname": user.FirstName,
 		"lastname":  user.LastName,
 		"email":     user.EmailId,
 		"exp":       time.Now().Add(time.Minute * 30).Unix(),
 	})
 
-	tokenString, err := claims.SignedString(SECRET_KEY)
+	refresh_token_claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"firstname": user.FirstName,
+		"lastname":  user.LastName,
+		"email":     user.EmailId,
+		"exp":       time.Now().Add(30 * 24 * time.Hour).Unix(),
+	})
+
+	accessTokenString, err := access_token_claims.SignedString(SECRET_KEY)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	fmt.Printf("Token claims added: %+v\n", claims)
-	return tokenString, nil
+	refreshTokenString, err := refresh_token_claims.SignedString(SECRET_KEY)
+	if err != nil {
+		return "", "", err
+	}
+
+	fmt.Printf("AccessToken claims added: %+v\n", access_token_claims)
+	fmt.Printf("RefreshToken claims added: %+v\n", refresh_token_claims)
+	return accessTokenString, refreshTokenString, nil
+}
+
+
+func (s *UserController) RefreshToken(ctx *gin.Context) {
+	refreshTokenString, err := ctx.Cookie("refreshToken")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+	godotenv.Load(".env")
+	SECRET := os.Getenv("JWT_SECRET")
+	SECRET_KEY := []byte(SECRET)
+
+	refreshToken, err := jwt.Parse(refreshTokenString, func(refreshToken *jwt.Token) (interface{}, error) {
+		if _, ok := refreshToken.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", refreshToken.Header["alg"])
+		}
+		return SECRET_KEY, nil
+	})
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   err,
+			"message": "Not able to parse refresh token",
+		})
+		return
+
+	}
+
+	if !refreshToken.Valid {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   err,
+			"message": "Invalid refresh token",
+		})
+		return
+	}
+
+	claims, ok := refreshToken.Claims.(jwt.MapClaims)
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   err,
+			"message": "invalid token claims",
+		})
+		return
+	}
+
+	if exp, ok := claims["exp"].(float64); ok {
+		if time.Unix(int64(exp), 0).Before(time.Now()) {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error":   err,
+				"message": "refresh token has expired",
+			})
+			return
+		}
+	} else {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   err,
+			"message": "expiration time not found in token",
+		})
+		return
+	}
+
+	userEmail := refreshToken.Claims.(jwt.MapClaims)["email"].(string)
+	existingUserbyEmail, err := s.UserService.FindUserByEmail(context.Background(), userEmail)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   err,
+			"message": "user not found",
+		})
+		return
+	}
+	newAccessToken, newRefreshToken, err := createToken(existingUserbyEmail)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.SetCookie("accessToken", newAccessToken, 3600, "/", "localhost", false, true)
+
+	ctx.SetCookie("refreshToken", newRefreshToken, 7*24*3600, "/", "localhost", false, true)
+
+	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
+		"message": "successfully verified user",
+		"success": true,
+		"error":   nil,
+	})
+	
+
 }

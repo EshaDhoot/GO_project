@@ -13,7 +13,7 @@ import (
 
 func AuthenticateMiddleware(ctx *gin.Context) {
 
-	tokenString, err := ctx.Cookie("token")
+	tokenString, err := ctx.Cookie("accessToken")
 	if err != nil {
 		fmt.Println("Token missing in cookie")
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
@@ -32,6 +32,7 @@ func AuthenticateMiddleware(ctx *gin.Context) {
 		})
 		return
 	}
+
 
 	fmt.Printf("Token verified successfully. Claims: %+v\\n", token.Claims)
 	ctx.Next()
@@ -64,7 +65,7 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
 
 	if exp, ok := claims["exp"].(float64); ok {
 		if time.Unix(int64(exp), 0).Before(time.Now()) {
-			return nil, fmt.Errorf("token has expired")
+			return nil, fmt.Errorf("access token has expired")
 		}
 	} else {
 		return nil, fmt.Errorf("expiration time not found in token")
