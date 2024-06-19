@@ -29,6 +29,7 @@ func (c *UserRepository) InsertData(ctx context.Context, user *models.User) erro
 	return nil
 }
 
+
 func (c *UserRepository) FindUserByPhone(ctx context.Context, PhoneNumber string) (*models.User, error) {
     filter := bson.M{"phoneNumber": PhoneNumber}
     var result models.User

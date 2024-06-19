@@ -14,7 +14,6 @@ func AuthenticateMiddleware(ctx *gin.Context) {
 	tokenString, err := ctx.Cookie("token")
 	if err != nil {
 		fmt.Println("Token missing in cookie")
-		// c.Redirect(http.StatusSeeOther, "/login")
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"message": "Token missing in cookie",
 			"error":   err,
@@ -25,8 +24,7 @@ func AuthenticateMiddleware(ctx *gin.Context) {
 	token, err := verifyToken(tokenString)
 	if err != nil {
 		fmt.Printf("Token verification failed: %v\\n", err)
-		// c.Redirect(http.StatusSeeOther, "/login")
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"message": "Token verification failed",
 			"error":   err,
 		})
@@ -55,4 +53,8 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
 	}
 
 	return token, nil
+
+	//email
+
+	//exp 
 }

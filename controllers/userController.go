@@ -96,6 +96,37 @@ func (s *UserController) SignUp(ctx *gin.Context) {
 
 }
 
+func (s *UserController) SignIn(ctx *gin.Context) {
+	var payload dtos.SignInRequest
+	err := ctx.ShouldBindJSON(&payload)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if payload.EmailId == "" {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": "Please enter email",
+			"success": false,
+		})
+		return
+	}
+	existingUserbyEmail, err := s.UserService.FindUserByEmail(context.Background(), payload.EmailId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": "User not found by this email",
+			"success": false,
+		})
+		return
+	}
+	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
+		"data":    existingUserbyEmail,
+		"message": "User found by this email",
+		"success": true,
+	})
+
+}
+
+
 func (s *UserController) VerifyOtp(ctx *gin.Context) {
 	var otpPayload dtos.OtpRequest
 	err := ctx.ShouldBindJSON(&otpPayload)
@@ -103,6 +134,7 @@ func (s *UserController) VerifyOtp(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	if otpPayload.OTP == "" {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"data":    nil,
@@ -122,31 +154,37 @@ func (s *UserController) VerifyOtp(ctx *gin.Context) {
 	}
 
 	if otpPayload.OTP == "123456" {
+		if otpPayload.EmailId == "" {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"message": "Please enter email",
+				"success": false,
+			})
+			return
+		}
+		existingUserbyEmail, err := s.UserService.FindUserByEmail(context.Background(), otpPayload.EmailId)
+		
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error":   err,
+				"message": "user not found",
+			})
+			return
+		}
+		token, err := createToken(existingUserbyEmail)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-	existingUserbyEmail, err := s.UserService.FindUserByEmail(context.Background(), otpPayload.EmailId)
-
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-			"message" : "user not found",
-		})
-		return
-	}
-	token, err := createToken(existingUserbyEmail)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.SetCookie("token", token, 3600, "/", "localhost", false, true)
+		ctx.SetCookie("token", token, 3600, "/", "localhost", false, true)
 		ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
 			"message": "successfully verified user",
 			"success": true,
 			"error":   nil,
 		})
-		return 
+		return
 	}
-	
+
 	// ctx.JSON(http.StatusOK, gin.H{
 	// 	"message": "successfully verified user",
 	// 	"success": true,
@@ -154,25 +192,23 @@ func (s *UserController) VerifyOtp(ctx *gin.Context) {
 	// })
 }
 
-
 func createToken(user *models.User) (string, error) {
-    
+
 	godotenv.Load(".env")
 	SECRET := os.Getenv("JWT_SECRET")
 	SECRET_KEY := []byte(SECRET)
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"firstname": user.FirstName,                    
-		"lastname": user.LastName,                  
-		"email": user.EmailId,
-		"exp": time.Now().Add(time.Minute * 30).Unix(),
+		"firstname": user.FirstName,
+		"lastname":  user.LastName,
+		"email":     user.EmailId,
+		"exp":       time.Now().Add(time.Minute * 30).Unix(),
 	})
 
 	tokenString, err := claims.SignedString(SECRET_KEY)
-    if err != nil {
-        return "", err
-    }
+	if err != nil {
+		return "", err
+	}
 
 	fmt.Printf("Token claims added: %+v\n", claims)
 	return tokenString, nil
 }
-
