@@ -49,3 +49,4 @@ func (s *UserService) FindUserByEmail(ctx context.Context, EmailId string)  (*mo
 	log.Println("UserService: Found user by email")
 	return user, nil
 }
+

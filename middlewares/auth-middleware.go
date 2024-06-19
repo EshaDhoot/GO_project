@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
@@ -41,20 +43,33 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
 	SECRET_KEY := []byte(SECRET)
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
 		return SECRET_KEY, nil
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error parsing token: %v", err)
 	}
 
 	if !token.Valid {
 		return nil, fmt.Errorf("invalid token")
+	}	
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("invalid token claims")
 	}
 
+	if exp, ok := claims["exp"].(float64); ok {
+		if time	.Unix(int64(exp), 0).Before(time.Now()) {
+			return nil, fmt.Errorf("token has expired")
+		}
+	} else {
+		return nil, fmt.Errorf("expiration time not found in token")
+	}
+	
 	return token, nil
-
-	//email
-
-	//exp 
 }
+
