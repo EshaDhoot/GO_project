@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type ProductRepository struct {
@@ -29,15 +30,17 @@ func (c *ProductRepository) InsertProductData(ctx context.Context, product *mode
 	return nil
 }
 
-func (c *ProductRepository) GetAllProducts(ctx context.Context )  ([]bson.M, error){
-	cursor, err := c.MongoDB.Collection("products").Find(ctx, bson.M{})
+func (c *ProductRepository) GetAllProducts(ctx context.Context) ([]bson.M, error) {
+	filter := bson.D{}
+	opts := options.Find().SetLimit(2)
+	cursor, err := c.MongoDB.Collection("products").Find(ctx, filter, opts)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
 	var products []bson.M
 	if err = cursor.All(ctx, &products); err != nil {
-		log.Fatal(err)
+		log.Fatal(err)	
 		return nil, err
 	}
 	// fmt.Println(products)
@@ -48,7 +51,7 @@ func (c *ProductRepository) FindById(ctx context.Context, ID primitive.ObjectID)
 
 	filter := bson.M{"_id": ID}
 	var result models.Product
-	
+
 	err := c.MongoDB.Collection("products").FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -64,7 +67,7 @@ func (c *ProductRepository) FindByIdAndDelete(ctx context.Context, ID primitive.
 
 	filter := bson.M{"_id": ID}
 	var result models.Product
-	
+
 	err := c.MongoDB.Collection("products").FindOneAndDelete(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
