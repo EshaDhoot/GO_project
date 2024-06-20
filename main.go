@@ -31,7 +31,7 @@ func main() {
 
 	router := gin.Default()
 
-	routes.UserRouter(router, db)
+	routes.Router(router, db)
 
 	address := fmt.Sprintf(":%s", port)
 	router.Run(address)

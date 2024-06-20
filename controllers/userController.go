@@ -77,7 +77,7 @@ func (s *UserController) SignUp(ctx *gin.Context) {
 
 	errr := s.UserService.CreateUser(context.Background(), user)
 	if errr != nil {
-		log.Printf("UserController: error inserting user data: %v", err)
+		log.Printf("UserController: error inserting user data: %v", errr)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"data":    nil,
 			"message": "not able to create a new user",
@@ -228,7 +228,6 @@ func createToken(user *models.User) (string, string, error) {
 	return accessTokenString, refreshTokenString, nil
 }
 
-
 func (s *UserController) RefreshToken(ctx *gin.Context) {
 	refreshTokenString, err := ctx.Cookie("refreshToken")
 	if err != nil {
@@ -312,6 +311,5 @@ func (s *UserController) RefreshToken(ctx *gin.Context) {
 		"success": true,
 		"error":   nil,
 	})
-	
 
 }

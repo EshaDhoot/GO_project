@@ -28,18 +28,18 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User) error {
 	return nil
 }
 
-func (s *UserService) FindUserByPhone(ctx context.Context, PhoneNumber string)  (*models.User, error) {
+func (s *UserService) FindUserByPhone(ctx context.Context, PhoneNumber string) (*models.User, error) {
 	user, err := s.UserRepo.FindUserByPhone(ctx, PhoneNumber)
 	if err != nil {
 		log.Printf("UserService: cannot find user by phone number")
-		return nil,  err
+		return nil, err
 	}
 
 	log.Println("UserService: Found user by phone number")
 	return user, nil
 }
 
-func (s *UserService) FindUserByEmail(ctx context.Context, EmailId string)  (*models.User, error) {
+func (s *UserService) FindUserByEmail(ctx context.Context, EmailId string) (*models.User, error) {
 	user, err := s.UserRepo.FindUserByEmail(ctx, EmailId)
 	if err != nil {
 		log.Printf("UserService: cannot find user by email")
@@ -49,4 +49,3 @@ func (s *UserService) FindUserByEmail(ctx context.Context, EmailId string)  (*mo
 	log.Println("UserService: Found user by email")
 	return user, nil
 }
-

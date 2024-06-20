@@ -9,11 +9,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func UserRouter(incomingRoutes *gin.Engine, mongoDB *mongo.Database) {
+func Router(incomingRoutes *gin.Engine, mongoDB *mongo.Database) {
 
 	authRepository := repository.NewUserRepository(mongoDB)
 	authService := services.NewUserService(authRepository)
 	authController := controllers.NewUserController(authService)
+
+	productRepository := repository.NewProductRepository(mongoDB)
+	productService := services.NewProductService(productRepository)
+	productController := controllers.NewProductController(productService)
+
 
 	v1 := incomingRoutes.Group("/api/v1")
 	{
@@ -22,6 +27,9 @@ func UserRouter(incomingRoutes *gin.Engine, mongoDB *mongo.Database) {
 		v1.POST("/users/verify-otp", authController.VerifyOtp)
 		v1.POST("/users/refresh-token", authController.RefreshToken)
 
+		v1.POST("/products", productController.CreateProduct)
 	}
 
 }
+
+
