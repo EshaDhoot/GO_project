@@ -50,6 +50,7 @@ func (s *ProductController) CreateProduct(ctx *gin.Context) {
 			"success": false,
 			"error":   errr.Error(),
 		})
+		return
 	} else {
 		ctx.AbortWithStatusJSON(http.StatusCreated, gin.H{
 			"data":    product,
@@ -59,4 +60,82 @@ func (s *ProductController) CreateProduct(ctx *gin.Context) {
 		})
 	}
 	log.Println("ProductController: product created successfully")
+}
+
+func (s *ProductController) FetchProducts(ctx *gin.Context) {
+	err := s.ProductService.GetProducts(ctx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"data":    nil,
+			"message": "unable to fetch products",
+			"success": false,
+			"error":   err,
+		})
+		return
+	} else {
+		ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
+			"message": "successfully fetched products",
+			"success": true,
+			"error":   nil,
+		})
+	}
+	log.Println("ProductController: products fetched successfully")
+}
+
+
+func (s *ProductController) FetchProductById(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	objID, err := primitive.ObjectIDFromHex(id)
+    if err != nil {
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+        return
+    }
+
+	product, err:= s.ProductService.FindProductById(context.Background(), objID)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"data":    nil,
+			"message": "unable to fetch product",
+			"success": false,
+			"error":   err,
+		})
+		return
+	}
+	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
+		"data":    product,
+		"message": "fetched product successfully",
+		"success": true,
+		"error":   nil,
+	})
+	
+}
+
+
+func (s *ProductController) FetchProductByIdAndDelete(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	objID, err := primitive.ObjectIDFromHex(id)
+    if err != nil {
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+        return
+    }
+
+	product, err:= s.ProductService.FindProductByIdAndDelete(context.Background(), objID)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"data":    nil,
+			"message": "unable to delete product",
+			"success": false,
+			"error":   err,
+		})
+		return
+	}
+	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
+		"data":    product,
+		"message": "deleted product successfully",
+		"success": true,
+		"error":   nil,
+	})
+	
 }

@@ -5,6 +5,8 @@ import (
 	"go_project/models"
 	"go_project/repository"
 	"log"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ProductService struct {
@@ -24,6 +26,40 @@ func (s *ProductService) CreateProduct(ctx context.Context, product *models.Prod
 		return err
 	}
 
-	log.Println("ProductService: user product successfully")
+	log.Println("ProductService: product created successfully")
 	return nil
+}
+
+func (s *ProductService) GetProducts(ctx context.Context) error {
+	err := s.ProductRepo.GetAllProducts(ctx)
+	if err != nil {
+		log.Printf("ProductService: error fetching all products: %v", err)
+		return err
+	}
+
+	log.Println("ProductService: products fetched successfully")
+	return nil
+}
+
+func (s *ProductService) FindProductById(ctx context.Context, ID primitive.ObjectID) (*models.Product, error) {
+	product, err := s.ProductRepo.FindById(ctx, ID)
+	if err != nil {
+		log.Printf("UserService: unable to fetch product")
+		return nil, err
+	}
+
+	log.Println("UserService: successfully fetched product")
+	return product, nil
+}
+
+
+func (s *ProductService) FindProductByIdAndDelete(ctx context.Context, ID primitive.ObjectID) (*models.Product, error) {
+	product, err := s.ProductRepo.FindByIdAndDelete(ctx, ID)
+	if err != nil {
+		log.Printf("UserService: unable to delete product")
+		return nil, err
+	}
+
+	log.Println("UserService: Deleted product successfully")
+	return product, nil
 }
