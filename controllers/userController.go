@@ -232,7 +232,7 @@ func createToken(user *models.User) (string, string, error) {
 func (s *UserController) RefreshToken(ctx *gin.Context) {
 	refreshTokenString, err := ctx.Cookie("refreshToken")
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err, "message": "Refresh token is missing"})
 		return
 	}
 	godotenv.Load(".env")
@@ -299,13 +299,13 @@ func (s *UserController) RefreshToken(ctx *gin.Context) {
 	}
 	newAccessToken, newRefreshToken, err := createToken(existingUserbyEmail)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err, "message": "token not found"})
 		return
 	}
 
 	ctx.SetCookie("accessToken", newAccessToken, 3600, "/", "localhost", false, true)
 
-	ctx.SetCookie("refreshToken", newRefreshToken, 7*24*3600, "/", "localhost", false, true)
+	ctx.SetCookie("refreshToken", newRefreshToken, 30*24*3600, "/", "localhost", false, true)
 
 	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
 		"message": "successfully verified user",
