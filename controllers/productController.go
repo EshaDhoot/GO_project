@@ -63,7 +63,7 @@ func (s *ProductController) CreateProduct(ctx *gin.Context) {
 }
 
 func (s *ProductController) FetchProducts(ctx *gin.Context) {
-	err := s.ProductService.GetProducts(ctx)
+	products, err := s.ProductService.GetProducts(ctx)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"data":    nil,
@@ -74,6 +74,7 @@ func (s *ProductController) FetchProducts(ctx *gin.Context) {
 		return
 	} else {
 		ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
+			"data":    products,
 			"message": "successfully fetched products",
 			"success": true,
 			"error":   nil,

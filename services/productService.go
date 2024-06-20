@@ -6,6 +6,7 @@ import (
 	"go_project/repository"
 	"log"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -30,15 +31,15 @@ func (s *ProductService) CreateProduct(ctx context.Context, product *models.Prod
 	return nil
 }
 
-func (s *ProductService) GetProducts(ctx context.Context) error {
-	err := s.ProductRepo.GetAllProducts(ctx)
+func (s *ProductService) GetProducts(ctx context.Context) ([]bson.M, error) {
+	products, err := s.ProductRepo.GetAllProducts(ctx)
 	if err != nil {
 		log.Printf("ProductService: error fetching all products: %v", err)
-		return err
+		return nil, err
 	}
 
 	log.Println("ProductService: products fetched successfully")
-	return nil
+	return products, nil
 }
 
 func (s *ProductService) FindProductById(ctx context.Context, ID primitive.ObjectID) (*models.Product, error) {

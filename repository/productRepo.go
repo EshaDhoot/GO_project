@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"go_project/models"
 	"log"
 
@@ -30,19 +29,19 @@ func (c *ProductRepository) InsertProductData(ctx context.Context, product *mode
 	return nil
 }
 
-func (c *ProductRepository) GetAllProducts(ctx context.Context) error {
+func (c *ProductRepository) GetAllProducts(ctx context.Context )  ([]bson.M, error){
 	cursor, err := c.MongoDB.Collection("products").Find(ctx, bson.M{})
 	if err != nil {
 		log.Fatal(err)
-		return err
+		return nil, err
 	}
 	var products []bson.M
 	if err = cursor.All(ctx, &products); err != nil {
 		log.Fatal(err)
-		return err
+		return nil, err
 	}
-	fmt.Println(products)
-	return nil
+	// fmt.Println(products)
+	return products, nil
 }
 
 func (c *ProductRepository) FindById(ctx context.Context, ID primitive.ObjectID) (*models.Product, error) {
