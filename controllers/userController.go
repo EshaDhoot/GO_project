@@ -133,7 +133,16 @@ func (s *UserController) VerifyOtp(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	existingUser, err := s.UserService.FindUserByEmail(context.Background(), otpPayload.EmailId)
 
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   err,
+			"message": "user not found",
+			"data": existingUser,
+		})
+		return
+	}
 	if otpPayload.OTP == "" {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"data":    nil,
