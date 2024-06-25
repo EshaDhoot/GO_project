@@ -107,6 +107,7 @@ func (s *UserController) SignIn(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": "Please enter email",
 			"success": false,
+			"error":   err,
 		})
 		return
 	}
@@ -115,6 +116,7 @@ func (s *UserController) SignIn(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": "User not found by this email",
 			"success": false,
+			"error":   err,
 		})
 		return
 	}
@@ -130,8 +132,10 @@ func (s *UserController) VerifyOtp(ctx *gin.Context) {
 	var otpPayload dtos.OtpRequest
 	err := ctx.ShouldBindJSON(&otpPayload)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   err.Error(),
+			"success": false,
+		})
 	}
 	existingUser, err := s.UserService.FindUserByEmail(context.Background(), otpPayload.EmailId)
 
@@ -139,7 +143,8 @@ func (s *UserController) VerifyOtp(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   err,
 			"message": "user not found",
-			"data": existingUser,
+			"data":    nil,
+			"success": false,
 		})
 		return
 	}
@@ -169,16 +174,16 @@ func (s *UserController) VerifyOtp(ctx *gin.Context) {
 			})
 			return
 		}
-		existingUserbyEmail, err := s.UserService.FindUserByEmail(context.Background(), otpPayload.EmailId)
+		// existingUserbyEmail, err := s.UserService.FindUserByEmail(context.Background(), otpPayload.EmailId)
 
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error":   err,
-				"message": "user not found",
-			})
-			return
-		}
-		accessToken, refreshToken, err := createToken(existingUserbyEmail)
+		// if err != nil {
+		// 	ctx.JSON(http.StatusBadRequest, gin.H{
+		// 		"error":   err,
+		// 		"message": "user not found",
+		// 	})
+		// 	return
+		// }
+		accessToken, refreshToken, err := createToken(existingUser)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -258,6 +263,7 @@ func (s *UserController) RefreshToken(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   err,
 			"message": "Not able to parse refresh token",
+			"success": false,
 		})
 		return
 
@@ -267,6 +273,7 @@ func (s *UserController) RefreshToken(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   err,
 			"message": "Invalid refresh token",
+			"success": false,
 		})
 		return
 	}
@@ -276,6 +283,7 @@ func (s *UserController) RefreshToken(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   err,
 			"message": "invalid token claims",
+			"success": false,
 		})
 		return
 	}
@@ -285,6 +293,7 @@ func (s *UserController) RefreshToken(ctx *gin.Context) {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"error":   err,
 				"message": "refresh token has expired",
+				"success": false,
 			})
 			return
 		}
@@ -292,6 +301,7 @@ func (s *UserController) RefreshToken(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   err,
 			"message": "expiration time not found in token",
+			"success": false,
 		})
 		return
 	}
@@ -302,6 +312,7 @@ func (s *UserController) RefreshToken(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":   err,
 			"message": "user not found",
+			"success": false,
 		})
 		return
 	}
