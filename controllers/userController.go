@@ -189,9 +189,9 @@ func (s *UserController) VerifyOtp(ctx *gin.Context) {
 			return
 		}
 
-		ctx.SetCookie("accessToken", accessToken, 3600, "/", "localhost", false, true)
+		ctx.SetCookie("accessToken", accessToken, 3600, "/", "localhost", false, false)
 
-		ctx.SetCookie("refreshToken", refreshToken, 7*24*3600, "/", "localhost", false, true)
+		ctx.SetCookie("refreshToken", refreshToken, 7*24*3600, "/", "localhost", false, false)
 
 		ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
 			"message": "successfully verified user",
