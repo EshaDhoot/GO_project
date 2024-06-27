@@ -189,7 +189,7 @@ func (s *UserController) VerifyOtp(ctx *gin.Context) {
 			return
 		}
 
-		ctx.SetCookie("accessToken", accessToken, 3600, "/", "localhost", false, false)
+		ctx.SetCookie("accessToken", accessToken, 600, "/", "localhost", false, false)
 
 		ctx.SetCookie("refreshToken", refreshToken, 7*24*3600, "/", "localhost", false, false)
 
@@ -217,7 +217,7 @@ func createToken(user *models.User) (string, string, error) {
 		"firstname": user.FirstName,
 		"lastname":  user.LastName,
 		"email":     user.EmailId,
-		"exp":       time.Now().Add(time.Minute * 30).Unix(),
+		"exp":       time.Now().Add(time.Minute * 10).Unix(),
 	})
 
 	refresh_token_claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
