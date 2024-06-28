@@ -33,7 +33,6 @@ func AuthenticateMiddleware(ctx *gin.Context) {
 		return
 	}
 
-
 	fmt.Printf("Token verified successfully. Claims: %+v\\n", token.Claims)
 	ctx.Next()
 }
@@ -56,7 +55,7 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
 
 	if !token.Valid {
 		return nil, fmt.Errorf("invalid token")
-	}	
+	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
@@ -70,7 +69,6 @@ func verifyToken(tokenString string) (*jwt.Token, error) {
 	} else {
 		return nil, fmt.Errorf("expiration time not found in token")
 	}
-	
+
 	return token, nil
 }
-

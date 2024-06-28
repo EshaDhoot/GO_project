@@ -45,22 +45,32 @@ func (s *ProductService) GetProducts(ctx context.Context) ([]bson.M, error) {
 func (s *ProductService) FindProductById(ctx context.Context, ID primitive.ObjectID) (*models.Product, error) {
 	product, err := s.ProductRepo.FindById(ctx, ID)
 	if err != nil {
-		log.Printf("UserService: unable to fetch product")
+		log.Printf("ProductService: unable to fetch product")
 		return nil, err
 	}
 
-	log.Println("UserService: successfully fetched product")
+	log.Println("ProductService: successfully fetched product")
 	return product, nil
 }
 
+func (s *ProductService) FindProductByIdAndUpdate(ctx context.Context, ID primitive.ObjectID, update bson.M) (*models.Product, error) {
+	product, err := s.ProductRepo.FindByIdAndUpdate(ctx, ID, update)
+	if err != nil {
+		log.Printf("ProductService: unable to update a product")
+		return nil, err
+	}
+
+	log.Println("ProductService: Updated product successfully")
+	return product, nil
+}
 
 func (s *ProductService) FindProductByIdAndDelete(ctx context.Context, ID primitive.ObjectID) (*models.Product, error) {
 	product, err := s.ProductRepo.FindByIdAndDelete(ctx, ID)
 	if err != nil {
-		log.Printf("UserService: unable to delete product")
+		log.Printf("ProductService: unable to delete product")
 		return nil, err
 	}
 
-	log.Println("UserService: Deleted product successfully")
+	log.Println("ProductService: Deleted product successfully")
 	return product, nil
 }

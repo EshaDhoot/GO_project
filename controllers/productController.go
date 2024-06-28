@@ -26,7 +26,7 @@ func (s *ProductController) CreateProduct(ctx *gin.Context) {
 	var payload dtos.ProductRequest
 	err := ctx.ShouldBindJSON(&payload)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -83,17 +83,16 @@ func (s *ProductController) FetchProducts(ctx *gin.Context) {
 	log.Println("ProductController: products fetched successfully")
 }
 
-
 func (s *ProductController) FetchProductById(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	objID, err := primitive.ObjectIDFromHex(id)
-    if err != nil {
-        ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
-        return
-    }
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		return
+	}
 
-	product, err:= s.ProductService.FindProductById(context.Background(), objID)
+	product, err := s.ProductService.FindProductById(context.Background(), objID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"data":    nil,
@@ -109,20 +108,19 @@ func (s *ProductController) FetchProductById(ctx *gin.Context) {
 		"success": true,
 		"error":   nil,
 	})
-	
-}
 
+}
 
 func (s *ProductController) FetchProductByIdAndDelete(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	objID, err := primitive.ObjectIDFromHex(id)
-    if err != nil {
-        ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
-        return
-    }
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		return
+	}
 
-	product, err:= s.ProductService.FindProductByIdAndDelete(context.Background(), objID)
+	product, err := s.ProductService.FindProductByIdAndDelete(context.Background(), objID)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"data":    nil,
@@ -138,5 +136,5 @@ func (s *ProductController) FetchProductByIdAndDelete(ctx *gin.Context) {
 		"success": true,
 		"error":   nil,
 	})
-	
+
 }

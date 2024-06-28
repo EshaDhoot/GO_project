@@ -40,10 +40,9 @@ func (c *ProductRepository) GetAllProducts(ctx context.Context) ([]bson.M, error
 	}
 	var products []bson.M
 	if err = cursor.All(ctx, &products); err != nil {
-		log.Fatal(err)	
+		log.Fatal(err)
 		return nil, err
 	}
-	// fmt.Println(products)
 	return products, nil
 }
 
@@ -77,4 +76,20 @@ func (c *ProductRepository) FindByIdAndDelete(ctx context.Context, ID primitive.
 	}
 
 	return &result, nil
+}
+
+func (c *ProductRepository) FindByIdAndUpdate(ctx context.Context, ID primitive.ObjectID, update bson.M) (*models.Product, error) {
+	filter := bson.M{"_id": ID}
+	updateData := bson.M{"$set": update}
+
+	var updatedProduct models.Product
+	err := c.MongoDB.Collection("products").FindOneAndUpdate(ctx, filter, updateData).Decode(&updatedProduct)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, err
+		}
+		return nil, err
+	}
+
+	return &updatedProduct, nil
 }
