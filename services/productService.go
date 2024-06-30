@@ -59,7 +59,6 @@ func (s *ProductService) FindProductByIdAndUpdate(ctx context.Context, ID primit
 		log.Printf("ProductService: unable to update a product")
 		return nil, err
 	}
-
 	log.Println("ProductService: Updated product successfully")
 	return product, nil
 }

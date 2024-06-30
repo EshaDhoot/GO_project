@@ -19,6 +19,10 @@ func Router(incomingRoutes *gin.Engine, mongoDB *mongo.Database) {
 	productService := services.NewProductService(productRepository)
 	productController := controllers.NewProductController(productService)
 
+	orderRepository := repository.NewOrderRepository(mongoDB)
+	orderService := services.NewOrderService(orderRepository)
+	orderController := controllers.NewOrderController(orderService, productService)
+
 
 	v1 := incomingRoutes.Group("/api/v1")
 	{
@@ -31,6 +35,9 @@ func Router(incomingRoutes *gin.Engine, mongoDB *mongo.Database) {
 		v1.GET("/products", middlewares.AuthenticateMiddleware, productController.FetchProducts)
 		v1.GET("/product/:id", middlewares.AuthenticateMiddleware, productController.FetchProductById)
 		v1.DELETE("/product/:id", productController.FetchProductByIdAndDelete)
+
+		v1.POST("/order/details", middlewares.AuthenticateMiddleware, orderController.CalculatePrice)
+		v1.POST("/order", middlewares.AuthenticateMiddleware, orderController.CreateOrder)
 
 	}
 

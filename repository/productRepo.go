@@ -79,17 +79,12 @@ func (c *ProductRepository) FindByIdAndDelete(ctx context.Context, ID primitive.
 }
 
 func (c *ProductRepository) FindByIdAndUpdate(ctx context.Context, ID primitive.ObjectID, update bson.M) (*models.Product, error) {
-	filter := bson.M{"_id": ID}
-	updateData := bson.M{"$set": update}
-
 	var updatedProduct models.Product
-	err := c.MongoDB.Collection("products").FindOneAndUpdate(ctx, filter, updateData).Decode(&updatedProduct)
+	filter := bson.M{"_id": ID}
+	updateOpts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	err := c.MongoDB.Collection("products").FindOneAndUpdate(ctx, filter, update, updateOpts).Decode(&updatedProduct)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, err
-		}
 		return nil, err
 	}
-
 	return &updatedProduct, nil
 }
