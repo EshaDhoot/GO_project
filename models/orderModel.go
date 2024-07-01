@@ -10,4 +10,5 @@ type Order struct {
 	UserId    string             `json:"UserId" bson:"UserId"`
 	NoOfUnits int                `json:"NoOfUnits" bson:"NoOfUnits"`
 	Product   *Product           `json:"Product" bson:"Product"`
+	TotalPrice int				`json:"TotalPrice" bson:"TotalPrice"`
 }

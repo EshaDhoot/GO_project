@@ -110,7 +110,9 @@ func (s *OrderController) CalculatePrice(ctx *gin.Context) {
         Tenure       int
         DiscountRate float32
         Xirr         float32
+		ID           string
     }{
+		ID: 		  pricePayload.ProductId,	
         TotalPrice:   totalPrice,
         BuyerName:    product.BuyerName,
         SellerName:   product.SellerName,
@@ -119,6 +121,7 @@ func (s *OrderController) CalculatePrice(ctx *gin.Context) {
         Tenure:       product.Tenure,
         DiscountRate: product.DiscountRate,
         Xirr:         product.Xirr,
+
     }
 
     log.Println("Price calculated successfully")
@@ -205,7 +208,7 @@ func (s *OrderController) CreateOrder(ctx *gin.Context) {
 		return
 	}
 	log.Printf("OrderController: Updated product data: %v", updatedProduct)
-
+	totalPrice := orderPayload.NoOfUnits * product.UnitPrice
 	
 	order := &models.Order{
 		ID:        primitive.NewObjectID(),
@@ -213,6 +216,7 @@ func (s *OrderController) CreateOrder(ctx *gin.Context) {
 		UserId:    userId,
 		NoOfUnits: orderPayload.NoOfUnits,
 		Product:   product,
+		TotalPrice: totalPrice,
 	}
 
 	if err := s.OrderService.CreateOrder(context.Background(), order); err != nil {
@@ -244,6 +248,7 @@ func (s *OrderController) FetchOrderByUserId(ctx *gin.Context) {
 		})
 		return
 	}
+	
 	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
 		"data":    orders,
 		"message": "fetched order successfully",
