@@ -5,6 +5,8 @@ import (
 	"go_project/models"
 	"go_project/repository"
 	"log"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserService struct {
@@ -47,5 +49,16 @@ func (s *UserService) FindUserByEmail(ctx context.Context, EmailId string) (*mod
 	}
 
 	log.Println("UserService: Found user by email")
+	return user, nil
+}
+
+func (s *UserService) FindUserById(ctx context.Context, ID primitive.ObjectID) (*models.User, error) {
+	user, err := s.UserRepo.FindById(ctx, ID)
+	if err != nil {
+		log.Printf("UserService: unable to fetch user")
+		return nil, err
+	}
+
+	log.Println("UserService: successfully fetched user")
 	return user, nil
 }

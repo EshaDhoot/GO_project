@@ -5,6 +5,8 @@ import (
 	"go_project/models"
 	"go_project/repository"
 	"log"
+
+	
 )
 
 type OrderService struct {
@@ -28,3 +30,13 @@ func (s *OrderService) CreateOrder(ctx context.Context, order *models.Order) err
 	return nil
 }
 
+func (s *OrderService) FindOrderByUserId(ctx context.Context, ID string) ([]models.Order, error) {
+	order, err := s.OrderRepo.FindById(ctx, ID)
+	if err != nil {
+		log.Printf("OrderService: unable to fetch Order")
+		return nil, err
+	}
+
+	log.Println("OrderService: successfully fetched Order")
+	return order, nil
+}

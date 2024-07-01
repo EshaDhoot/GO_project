@@ -38,6 +38,7 @@ func Router(incomingRoutes *gin.Engine, mongoDB *mongo.Database) {
 
 		v1.POST("/order/details", middlewares.AuthenticateMiddleware, orderController.CalculatePrice)
 		v1.POST("/order", middlewares.AuthenticateMiddleware, orderController.CreateOrder)
+		v1.GET("/orders/:userid", middlewares.AuthenticateMiddleware, orderController.FetchOrderByUserId)
 
 	}
 

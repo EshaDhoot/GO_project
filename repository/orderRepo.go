@@ -5,6 +5,7 @@ import (
 	"go_project/models"
 	"log"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -25,4 +26,20 @@ func (c *OrderRepository) InsertOrderData(ctx context.Context, order *models.Ord
 		return err
 	}
 	return nil
+}
+
+func (c *OrderRepository) FindById(ctx context.Context, ID string) ([]models.Order, error) {
+
+	filter := bson.M{"UserId": ID}
+    cursor, err := c.MongoDB.Collection("orders").Find(ctx, filter)
+    if err != nil {
+        return nil, err
+    }
+    defer cursor.Close(ctx)
+
+    var orders []models.Order
+    if err := cursor.All(ctx, &orders); err != nil {
+        return nil, err
+    }
+    return orders, nil
 }

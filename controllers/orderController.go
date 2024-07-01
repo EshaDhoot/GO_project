@@ -21,12 +21,14 @@ import (
 type OrderController struct {
 	OrderService   *services.OrderService
 	ProductService *services.ProductService
+	
 }
 
 func NewOrderController(orderService *services.OrderService,  productService *services.ProductService) *OrderController {
 	return &OrderController{
 		OrderService: orderService,
 		ProductService: productService,
+		
 	}
 }
 
@@ -207,7 +209,7 @@ func (s *OrderController) CreateOrder(ctx *gin.Context) {
 	
 	order := &models.Order{
 		ID:        primitive.NewObjectID(),
-		ProductId: orderPayload.ProductId,
+		ProductId: productObjID,
 		UserId:    userId,
 		NoOfUnits: orderPayload.NoOfUnits,
 		Product:   product,
@@ -221,4 +223,32 @@ func (s *OrderController) CreateOrder(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, gin.H{"message": "Successfully created a new order", "data": order})
 	log.Println("OrderController: Order created successfully")
+}
+
+func (s *OrderController) FetchOrderByUserId(ctx *gin.Context) {
+	userid := ctx.Param("userid")
+
+	// objID, err := primitive.ObjectIDFromHex(id)
+	// if err != nil {
+	// 	ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid User ID"})
+	// 	return
+	// }
+
+	orders, err := s.OrderService.FindOrderByUserId(context.Background(), userid)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"data":    nil,
+			"message": "unable to fetch order",
+			"success": false,
+			"error":   err,
+		})
+		return
+	}
+	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
+		"data":    orders,
+		"message": "fetched order successfully",
+		"success": true,
+		"error":   nil,
+	})
+
 }

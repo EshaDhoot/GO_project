@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -13,7 +14,7 @@ type UserRepository struct {
 	MongoDB *mongo.Database
 }
 
-// Constructor for UserRepository
+
 func NewUserRepository(mongoDB *mongo.Database) *UserRepository {
 	return &UserRepository{
 		MongoDB: mongoDB,
@@ -47,6 +48,22 @@ func (c *UserRepository) FindUserByPhone(ctx context.Context, PhoneNumber string
 func (c *UserRepository) FindUserByEmail(ctx context.Context, EmailId string) (*models.User, error) {
 
 	filter := bson.M{"emailId": EmailId}
+	var result models.User
+
+	err := c.MongoDB.Collection("users").FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, err
+		}
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func (c *UserRepository) FindById(ctx context.Context, ID primitive.ObjectID) (*models.User, error) {
+
+	filter := bson.M{"_id": ID}
 	var result models.User
 
 	err := c.MongoDB.Collection("users").FindOne(ctx, filter).Decode(&result)

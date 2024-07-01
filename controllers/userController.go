@@ -214,7 +214,7 @@ func createToken(user *models.User) (string, string, error) {
 	SECRET := os.Getenv("JWT_SECRET")
 	SECRET_KEY := []byte(SECRET)
 	access_token_claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"_id":    user.ID,
+		"_id":       user.ID,
 		"firstname": user.FirstName,
 		"lastname":  user.LastName,
 		"email":     user.EmailId,
@@ -222,7 +222,7 @@ func createToken(user *models.User) (string, string, error) {
 	})
 
 	refresh_token_claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"_id":    user.ID,
+		"_id":       user.ID,
 		"firstname": user.FirstName,
 		"lastname":  user.LastName,
 		"email":     user.EmailId,
@@ -330,6 +330,34 @@ func (s *UserController) RefreshToken(ctx *gin.Context) {
 
 	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
 		"message": "successfully verified user",
+		"success": true,
+		"error":   nil,
+	})
+
+}
+
+func (s *UserController) FetchUserById(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid User ID"})
+		return
+	}
+
+	user, err := s.UserService.FindUserById(context.Background(), objID)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"data":    nil,
+			"message": "unable to fetch User",
+			"success": false,
+			"error":   err,
+		})
+		return
+	}
+	ctx.AbortWithStatusJSON(http.StatusOK, gin.H{
+		"data":    user,
+		"message": "fetched User successfully",
 		"success": true,
 		"error":   nil,
 	})
